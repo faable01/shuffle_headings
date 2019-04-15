@@ -11,8 +11,11 @@ try:
   number_of_pages = int(input('シャッフル元となるページの取得件数を入力してください >>> '))
   # ユーザ入力 >>> 除外するドメインのリスト
   user_input = input('除外するドメインを指定してください（スペースを空けて複数指定可能） >>> ').strip() or None
-  exclusion_domain_list = user_input and [
-      re.match("(www\.|)(.*)", d)[2] for d in user_input.split()] or None
+  exclusion_domain_list = user_input and [re.match("(www\.|)(.*)", d)[2] for d in user_input.split()] or None
+  # 検索エンジンの指定
+  search_engine = 0
+  while not search_engine in (1, 2, 3):
+    search_engine = int(input('検索エンジンを選択してください。 1. Google, 2. Yahoo!, 3. Bing（1, 2, 3のどれかを押してください） >>> '))
   # ユーザ入力 >>> 検索キーワード
   search_keyword = '+'.join(input('検索キーワードを入力してください >>> ').split())
 
@@ -118,31 +121,26 @@ try:
           url_tag_list, exclusion_target_list) or url_tag_list
       result_list.extend(url_tag_list_excluding_target_domain)
       loop_index += 1
-
     return result_list[: number]
 
   # 指定した数までYahoo!で検索する(第3引数のドメインを除外した上で)
   def search_by_yahoo_up_to_specified_number(keyword, number, exclusion_target_list):
     result_list = []
-    loop_index = 0
     while len(result_list) < number:
       url_tag_list = search_by_yahoo(keyword, len(result_list) + 1)
       url_tag_list_excluding_target_domain = exclusion_target_list and exclude_specific_domains(
           url_tag_list, exclusion_target_list) or url_tag_list
       result_list.extend(url_tag_list_excluding_target_domain)
-
     return result_list[: number]
 
   # 指定した数までbingで検索する(第3引数のドメインを除外した上で)
   def search_by_bing_up_to_specified_number(keyword, number, exclusion_target_list):
     result_list = []
-    loop_index = 0
     while len(result_list) < number:
       url_tag_list = search_by_bing(keyword, len(result_list) + 1)
       url_tag_list_excluding_target_domain = exclusion_target_list and exclude_specific_domains(
           url_tag_list, exclusion_target_list) or url_tag_list
       result_list.extend(url_tag_list_excluding_target_domain)
-
     return result_list[: number]
 
   # 全見出し + 名詞,一般　格納変数
@@ -150,9 +148,14 @@ try:
   noun_list = {'h2': [], 'h3': [], 'h4': []}
 
   # 全件URLリスト
-  urlList = get_url_tag_list_up_to_specified_number(
-      search_keyword, number_of_pages, exclusion_domain_list)
-
+  urlList = None
+  if search_engine == 1:
+    urlList = get_url_tag_list_up_to_specified_number(search_keyword, number_of_pages, exclusion_domain_list)
+  elif search_engine == 2:
+    urlList = search_by_yahoo_up_to_specified_number(search_keyword, number_of_pages, exclusion_domain_list)
+  elif search_engine == 3:
+    urlList = search_by_bing_up_to_specified_number(search_keyword, number_of_pages, exclusion_domain_list)
+  
   print(f'キーワードに基づき、シャッフル元となるページを取得します（全{number_of_pages}ページ）')
   for i, u in enumerate(urlList):
     print(f'{i + 1}件目取得中...')
