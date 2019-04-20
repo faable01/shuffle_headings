@@ -18,7 +18,9 @@ try:
     search_engine = int(input('検索エンジンを選択してください。 1. Google, 2. Yahoo!, 3. Bing（1, 2, 3のどれかを押してください） >>> '))
   # ユーザ入力 >>> 検索キーワード
   search_keyword = '+'.join(input('検索キーワードを入力してください >>> ').split())
-
+  # デフォルトの削除ドメイン
+  default_exclusion_domain_list = ["https://www.amazon.co.jp/", "https://www.rakuten.co.jp/", "https://kakaku.com/", "https://twitter.com/", "https://www.instagram.com/", "https://www.cosme.net/", "https://beauty.hotpepper.jp/", "https://search.rakuten.co.jp/"]
+  exclusion_domain_list.extend(default_exclusion_domain_list)
   # tokennizer作成
   t = Tokenizer()
 
@@ -108,7 +110,7 @@ try:
     if exclusion_num > 0:
       print(f'{exclusion_num}件除外しました')
     else:
-      print('除外対象なし')
+      print('除外対象なし') 
     return result_list
 
   # 指定した値までGoogle検索でURLタグをリストアップする(第3引数のドメインを除外した上で)
