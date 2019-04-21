@@ -206,15 +206,15 @@ try:
     for h in h_list:
       h_text = h.text.strip()
 
-      if h.name == 'h2':
+      if h.name == 'h2' and has_kw(must_keyword, h_text):
         all['h2'].append(h_text)
         noun_list['h2'].extend(getSurfaceOf(t.tokenize(h_text), '名詞,一般'))
 
-      elif h.name == 'h3':
+      elif h.name == 'h3' and has_kw(must_keyword, h_text):
         all['h3'].append(h_text)
         noun_list['h3'].extend(getSurfaceOf(t.tokenize(h_text), '名詞,一般'))
 
-      elif h.name == 'h4':
+      elif h.name == 'h4' and has_kw(must_keyword, h_text):
         all['h4'].append(h_text)
         noun_list['h4'].extend(getSurfaceOf(t.tokenize(h_text), '名詞,一般'))
 
