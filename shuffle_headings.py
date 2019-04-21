@@ -21,8 +21,16 @@ try:
   # デフォルトの削除ドメイン
   default_exclusion_domain_list = ["https://www.amazon.co.jp/", "https://www.rakuten.co.jp/", "https://kakaku.com/", "https://twitter.com/", "https://www.instagram.com/", "https://www.cosme.net/", "https://beauty.hotpepper.jp/", "https://search.rakuten.co.jp/"]
   exclusion_domain_list.extend(default_exclusion_domain_list)
+  # 必須KW
+  must_keyword = input('必須キーワードを入力してください >>> ')
   # tokennizer作成
   t = Tokenizer()
+
+
+  # ______________________________________________________________________________________________
+  #
+  # 文字列操作系
+  # -----------------
 
   # 指定した品詞の文字列を取得するメソッド
   def getSurfaceOf(token_list, part_of_speech):
@@ -44,7 +52,17 @@ try:
           candidate_list_to_replace) or print('[candidate_list_to_replace()] is nothing.')
     # 入れ替えた結果を返却する
     return "".join(wakati)
-
+  
+  # 文字列に特定のキーワードが入っているかを確認する関数
+  def has_kw(target_kw, target_str):
+    return target_kw in target_str
+  
+  
+  # ______________________________________________________________________________________________
+  #
+  # 検索系
+  # -----------------
+  
   # Googleで検索する（キーワードとstart位置を指定してGoogle検索結果のURLのタグのリストを返却する関数）
   def get_url_tag_list(keyword, start):
     url = 'https://www.google.co.jp/search'
@@ -144,6 +162,12 @@ try:
           url_tag_list, exclusion_target_list) or url_tag_list
       result_list.extend(url_tag_list_excluding_target_domain)
     return result_list[: number]
+
+
+  # ________________________________________________________________________________
+  #
+  # 以下実行処理
+  # ---------------------------
 
   # 全見出し + 名詞,一般　格納変数
   all = {'h2': [], 'h3': [], 'h4': []}
