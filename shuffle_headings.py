@@ -237,24 +237,24 @@ try:
       base_h2 = len(all['h2']) and random.choice(
           all['h2']) or print("取得したh2見出しがありません")
       # ベースの名詞,一般トークンを入れ替え候補リストの中からランダムに選ばれた単語と入れ替える
-      result_h2 = swapNoun(base_h2, noun_list['h2'])
-      print(result_h2)
+      result_h2 = base_h2 and swapNoun(base_h2, noun_list['h2']) or false
+      result_h2 and print(result_h2)
 
       num_h3 = random.randrange(2, 4, 1)
       for j in range(num_h3):
 
         base_h3 = len(all['h3']) and random.choice(
             all['h3']) or print("取得したh3見出しがありません")
-        result_h3 = swapNoun(base_h3, noun_list['h3'])
-        print(f'・{result_h3}')
+        result_h3 = base_h3 and swapNoun(base_h3, noun_list['h3']) or false
+        result_h3 and print(f'・{result_h3}')
 
         num_h4 = random.choice([0, 0, 0, 0, 2, 3])
         for k in range(num_h4):
 
           base_h4 = len(all['h4']) and random.choice(
               all['h4']) or print("取得したh4見出しがありません")
-          result_h4 = swapNoun(base_h4, noun_list['h4'])
-          print(f'・・{result_h4}')
+          result_h4 = base_h4 and swapNoun(base_h4, noun_list['h4']) or false
+          result_h4 and print(f'・・{result_h4}')
 
       print('')
 
