@@ -132,3 +132,30 @@ def search_by_bing_up_to_specified_number(keyword, number, exclusion_target_list
 tag_list = search_by_bing_up_to_specified_number("python", 20, [])
 for tag in tag_list:
   print(tag['href'])
+
+
+
+
+
+#______________________________________
+#
+# マルコフ連鎖のテスト
+# ---------------------
+
+
+import markovify
+
+# Get raw text as string.
+with open("markovify_test.txt") as f:
+    text = f.read()
+
+# Build the model.
+text_model = markovify.Text(text)
+
+# Print five randomly-generated sentences
+for i in range(5):
+    print(text_model.make_sentence())
+
+# Print three randomly-generated sentences of no more than 140 characters
+for i in range(3):
+    print(text_model.make_short_sentence(140))
