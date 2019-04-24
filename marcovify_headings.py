@@ -4,6 +4,7 @@ from bs4 import BeautifulSoup
 import datetime
 from janome.tokenizer import Tokenizer
 import random
+import markovify
 
 # tokennizer作成
 t = Tokenizer()
@@ -61,6 +62,9 @@ def swapNoun(target, candidate_list_to_replace):
 def has_kw(target_kw, target_str):
   return target_kw in target_str
 
+# 文字列の配列の要素を改行で結合する
+def create_str_lines(str_list):
+  return '¥n'.join(str_list)
 
 # ______________________________________________________________________________________________
 #
@@ -312,10 +316,56 @@ def shuffle_headings_app():
     elif is_retry == 'NO':
       break  
 
+def marcovify_headings_app():
+  # 全見出し + 名詞,一般　格納変数
+  all = {'h2': [], 'h3': [], 'h4': []}
+
+  # 全件URLリスト
+  urlList = None
+  if search_engine == 1:
+    urlList = get_url_tag_list_up_to_specified_number(search_keyword, number_of_pages, exclusion_domain_list)
+  elif search_engine == 2:
+    urlList = search_by_yahoo_up_to_specified_number(search_keyword, number_of_pages, exclusion_domain_list)
+  elif search_engine == 3:
+    urlList = search_by_bing_up_to_specified_number(search_keyword, number_of_pages, exclusion_domain_list)
+  
+  print(f'キーワードに基づきページを取得します（全{number_of_pages}ページ）')
+  for i, u in enumerate(urlList):
+
+    print(f'{i + 1}件目取得中...')
+    headings = get_headings(u)
+    all['h2'].extend(headings['h2'])
+    all['h3'].extend(headings['h3'])
+    all['h4'].extend(headings['h4'])
+    print('完了')
+
+  print('全URLの見出しの取得を完了しました。')
+
+  all_h2_str = create_str_lines(all['h2'])
+  all_h3_str = create_str_lines(all['h3'])
+  all_h4_str = create_str_lines(all['h4'])
+  all_line = f'{all_h2_str}¥n{all_h3_str}¥n{all_h4_str}'
+
+  print(all_line)
+
+  # Build the model.
+  text_model = markovify.NewlineText(all_line)
+  
+  # Print five randomly-generated sentences
+  for i in range(5):
+      print(text_model.make_sentence())
+  
+  # Print three randomly-generated sentences of no more than 140 characters
+  for i in range(3):
+      print(text_model.make_short_sentence(140))
+    
 # ________________________________________________________________________________
 #
 # app実行
 # ---------------------------
 
-# 見出しシャッフルツールの実行
-shuffle_headings_app()
+# # 見出しシャッフルツールの実行
+# shuffle_headings_app()
+
+# マルコフ連鎖ツールの実行
+marcovify_headings_app()
