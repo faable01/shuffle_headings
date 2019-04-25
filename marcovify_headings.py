@@ -5,6 +5,13 @@ import datetime
 from janome.tokenizer import Tokenizer
 import random
 import markovify
+import ssl
+from concurrent.futures import ThreadPoolExecutor
+import urllib3
+from urllib3.exceptions import InsecureRequestWarning
+
+# InsecureRequestWarningを非表示にする
+urllib3.disable_warnings(InsecureRequestWarning)
 
 # tokennizer作成
 t = Tokenizer()
@@ -31,6 +38,27 @@ exclusion_domain_list.extend(default_exclusion_domain_list)
 # 必須KW
 must_keyword = input('必須キーワードを入力してください >>> ')
 
+
+# ______________________________________________________________________________________________
+#
+# ファイル操作系
+# -----------------
+def write_next_line(filename, str):
+  with open(filename, mode="a") as f:
+    f.write("\n")
+    f.write(str)
+
+def write(filename, str):
+  with open(filename, mode="w", encoding="UTF-8") as f:
+    f.write(str)
+
+def read(filename):
+  with open(filename) as f:
+    return f.read()
+
+def read_lines_as_list(filename):
+  with open(filename) as f:
+    return f.readlines()
 
 # ______________________________________________________________________________________________
 #
@@ -64,7 +92,23 @@ def has_kw(target_kw, target_str):
 
 # 文字列の配列の要素を改行で結合する
 def create_str_lines(str_list):
-  return '¥n'.join(str_list)
+  return "\n".join(str_list)
+
+# 対象の文字列を分ち書きする
+def create_wakati_list(target: str) -> list:
+  return t.tokenize(target, wakati=True)
+
+# 分ち書きしたリストを半角スペースで繋げた文字列を返す
+def create_wakati_line(wakati_list: list) -> str:
+  return " ".join(wakati_list)
+
+# 文字列を分ち書きして半角スペースで区切った文字列を返す
+def write_wakati(target: str) -> str:
+  return create_wakati_line(create_wakati_list(target))
+
+# エスケープを削除する（二重バックスラッシュを一重にする）
+def delete_escape(target: str) -> str:
+  return target.replace("¥¥", "¥")
 
 # ______________________________________________________________________________________________
 #
@@ -181,7 +225,7 @@ def get_headings(url_tag):
   # 取得したURLにアクセス
   h = {
       "User-Agent": "Mozilla/5.0 (Linux; U; Android 4.1.2; ja-jp; SC-06D Build/JZO54K) AppleWebKit/534.30 (KHTML, like Gecko) Version/4.0 Mobile Safari/534.30"}
-  res = requests.get(url_tag['href'], headers=h)
+  res = requests.get(url_tag['href'], headers=h, verify=False)
 
   # WEBページの文字コードを推測
   res.encoding = res.apparent_encoding
@@ -231,6 +275,42 @@ def get_noun_list(headings):
   print(f"noun_list${noun_list}")
   return noun_list
 
+# 引数で指定したURLタグのリストに従い、見出し取得を行う
+def get_all_headings(urlList: list) -> list:
+  # 全見出し + 名詞,一般　格納変数
+  all = {'h2': [], 'h3': [], 'h4': []}
+  
+  print(f'キーワードに基づきページを取得します（全{len(urlList)}ページ）')
+  for i, u in enumerate(urlList):
+
+    print(f'{i + 1}件目取得中...')
+    headings = get_headings(u)
+    all['h2'].extend([write_wakati(h) for h in headings['h2']])
+    all['h3'].extend([write_wakati(h) for h in headings['h3']])
+    all['h4'].extend([write_wakati(h) for h in headings['h4']])
+    print('完了')
+
+  print('全URLの見出しの取得を完了しました。')
+  return all
+
+# 引数で指定したURLタグのリストに従い、複数スレッドでアクセス・見出し取得を行う
+def multi_get_all_headings(urlList):
+
+  # 全見出し + 名詞,一般　格納変数
+  all = {'h2': [], 'h3': [], 'h4': []}
+
+  # 複数スレッドでの関数実行
+  with ThreadPoolExecutor() as pool:
+    for i, headings in enumerate(pool.map(get_headings, urlList)):
+      print(f'{i + 1}件目解析中...')
+      all['h2'].extend([write_wakati(h) for h in headings['h2']])
+      all['h3'].extend([write_wakati(h) for h in headings['h3']])
+      all['h4'].extend([write_wakati(h) for h in headings['h4']])
+      print('完了')
+
+  print('全URLの見出しの取得を完了しました。')
+  return all
+  
 # 第一引数の見出しリストをシャッフルする関数 (第一引数：{'h2', 'h3', 'h4'})
 def shuffle_headings(all):
   
@@ -317,8 +397,6 @@ def shuffle_headings_app():
       break  
 
 def marcovify_headings_app():
-  # 全見出し + 名詞,一般　格納変数
-  all = {'h2': [], 'h3': [], 'h4': []}
 
   # 全件URLリスト
   urlList = None
@@ -329,24 +407,17 @@ def marcovify_headings_app():
   elif search_engine == 3:
     urlList = search_by_bing_up_to_specified_number(search_keyword, number_of_pages, exclusion_domain_list)
   
-  print(f'キーワードに基づきページを取得します（全{number_of_pages}ページ）')
-  for i, u in enumerate(urlList):
+  # 全見出し　{'h2': [...], 'h3': [...], 'h4': [...]}
+  all = multi_get_all_headings(urlList)
 
-    print(f'{i + 1}件目取得中...')
-    headings = get_headings(u)
-    all['h2'].extend(headings['h2'])
-    all['h3'].extend(headings['h3'])
-    all['h4'].extend(headings['h4'])
-    print('完了')
-
-  print('全URLの見出しの取得を完了しました。')
-
+  # 二次元リストをスペース + 改行区切りで文字列に変換
   all_h2_str = create_str_lines(all['h2'])
   all_h3_str = create_str_lines(all['h3'])
   all_h4_str = create_str_lines(all['h4'])
-  all_line = f'{all_h2_str}¥n{all_h3_str}¥n{all_h4_str}'
+  all_line = f"{all_h2_str}\n{all_h3_str}\n{all_h4_str}"
 
-  print(all_line)
+  # log
+  write("all_line", all_line)
 
   # Build the model.
   text_model = markovify.NewlineText(all_line)
