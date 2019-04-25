@@ -394,7 +394,55 @@ def shuffle_headings_app():
     if is_retry == 'YES':
       loop_count += 1
     elif is_retry == 'NO':
-      break  
+      break
+
+def marcovify_headings(all):
+  # 二次元リストをスペース + 改行区切りで文字列に変換
+  all_h2_str = create_str_lines(all['h2'])
+  all_h3_str = create_str_lines(all['h3'])
+  all_h4_str = create_str_lines(all['h4'])
+  all_line = f"{all_h2_str}\n{all_h3_str}\n{all_h4_str}"
+
+  # log
+  # write("all_h2.log", all_h2_str)
+  # write("all_h3.log", all_h3_str)
+  # write("all_h4.log", all_h4_str)
+  write("all_line.log", all_line)
+
+  # Build the model.
+  # model_h2 = markovify.NewlineText(all_h2_str)
+  # model_h3 = markovify.NewlineText(all_h3_str)
+  # model_h4 = markovify.NewlineText(all_h4_str)
+  text_model = markovify.NewlineText(all_line)
+
+  # ---- 見出し構築・出力 ----
+
+  # h2を3〜5個
+  num_h2 = random.randrange(3, 6, 1)
+  for i in range(num_h2):
+
+    # h2 = print(model_h2.make_sentence())
+    # print(h2)
+    print(text_model.make_sentence())
+
+    # 各h2に対してh3を2~3個
+    num_h3 = random.randrange(2, 4, 1)
+    for j in range(num_h3):
+
+      # h3 = print(model_h3.make_sentence())
+      # print(f'・{h3}')
+      print(f'・{text_model.make_sentence()}')
+      
+      # h3に対して3回に1回の割合くらいでh4を2~3個
+      num_h4 = random.choice([0, 0, 0, 0, 2, 3])
+      for k in range(num_h4):
+
+        # h4 = print(model_h4.make_sentence())
+        # print(f'・・{h4}')
+        print(f'・・{text_model.make_sentence()}')
+    
+    print('')
+
 
 def marcovify_headings_app():
 
@@ -410,26 +458,28 @@ def marcovify_headings_app():
   # 全見出し　{'h2': [...], 'h3': [...], 'h4': [...]}
   all = multi_get_all_headings(urlList)
 
-  # 二次元リストをスペース + 改行区切りで文字列に変換
-  all_h2_str = create_str_lines(all['h2'])
-  all_h3_str = create_str_lines(all['h3'])
-  all_h4_str = create_str_lines(all['h4'])
-  all_line = f"{all_h2_str}\n{all_h3_str}\n{all_h4_str}"
+  loop_count = 1
+  while True:
+    print('\n____________________________________________\n')
+    print(f'構成案 {loop_count}件目\n---------------------------\n')
 
-  # log
-  write("all_line", all_line)
+    # マルコフ連鎖で見出しを自動生成する
+    marcovify_headings(all)
 
-  # Build the model.
-  text_model = markovify.NewlineText(all_line)
-  
-  # Print five randomly-generated sentences
-  for i in range(5):
-      print(text_model.make_sentence())
-  
-  # Print three randomly-generated sentences of no more than 140 characters
-  for i in range(3):
-      print(text_model.make_short_sentence(140))
-    
+    is_retry = ""
+    while is_retry != 'YES' and is_retry != 'NO':
+      is_retry = input('もう一度シャッフル・再構築しますか？ ( YES / NO ) >>> ')
+
+      if is_retry == 'YES' or is_retry == 'yes' or is_retry == 'y' or is_retry == 'Y':
+        is_retry = 'YES'
+      elif is_retry == 'NO' or is_retry == 'no' or is_retry == 'n' or is_retry == 'N':
+        is_retry = 'NO'
+
+    if is_retry == 'YES':
+      loop_count += 1
+    elif is_retry == 'NO':
+      break
+   
 # ________________________________________________________________________________
 #
 # app実行

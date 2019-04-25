@@ -55,3 +55,83 @@ footplus様から提案されたもの
 other
 ----------------
 マルコフ連鎖で文章を生成してみたい
+　-> 見出し生成のみで言えば、圧倒的に取得情報量が少ない。50件検索してマルコフ連鎖が発生しない場合がある（見出しレベルごとに分けた場合）
+
+マルコフ連鎖で見出し生成してみたが、説得力のない見出し構成ができた。
+->説得力のあるものにするためには、まず文章の自動生成を行い、その上で文中の重要なワードを抜き出してそれらを元にタイトルをつける、ぐらいのことをしなければならない。
+
+タイムアウト時のエラーハンドリング実装したい
+-----------------------------------------
+Traceback (most recent call last):
+  File "/usr/local/var/pyenv/versions/3.6.8/lib/python3.6/site-packages/urllib3/connection.py", line 159, in _new_conn
+    (self._dns_host, self.port), self.timeout, **extra_kw)
+  File "/usr/local/var/pyenv/versions/3.6.8/lib/python3.6/site-packages/urllib3/util/connection.py", line 80, in create_connection
+    raise err
+  File "/usr/local/var/pyenv/versions/3.6.8/lib/python3.6/site-packages/urllib3/util/connection.py", line 70, in create_connection
+    sock.connect(sa)
+TimeoutError: [Errno 60] Operation timed out
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/usr/local/var/pyenv/versions/3.6.8/lib/python3.6/site-packages/urllib3/connectionpool.py", line 600, in urlopen
+    chunked=chunked)
+  File "/usr/local/var/pyenv/versions/3.6.8/lib/python3.6/site-packages/urllib3/connectionpool.py", line 354, in _make_request
+    conn.request(method, url, **httplib_request_kw)
+  File "/usr/local/var/pyenv/versions/3.6.8/lib/python3.6/http/client.py", line 1239, in request
+    self._send_request(method, url, body, headers, encode_chunked)
+  File "/usr/local/var/pyenv/versions/3.6.8/lib/python3.6/http/client.py", line 1285, in _send_request
+    self.endheaders(body, encode_chunked=encode_chunked)
+  File "/usr/local/var/pyenv/versions/3.6.8/lib/python3.6/http/client.py", line 1234, in endheaders
+    self._send_output(message_body, encode_chunked=encode_chunked)
+  File "/usr/local/var/pyenv/versions/3.6.8/lib/python3.6/http/client.py", line 1026, in _send_output
+    self.send(msg)
+  File "/usr/local/var/pyenv/versions/3.6.8/lib/python3.6/http/client.py", line 964, in send
+    self.connect()
+  File "/usr/local/var/pyenv/versions/3.6.8/lib/python3.6/site-packages/urllib3/connection.py", line 181, in connect
+    conn = self._new_conn()
+  File "/usr/local/var/pyenv/versions/3.6.8/lib/python3.6/site-packages/urllib3/connection.py", line 168, in _new_conn
+    self, "Failed to establish a new connection: %s" % e)
+urllib3.exceptions.NewConnectionError: <urllib3.connection.HTTPConnection object at 0x10c0c0048>: Failed to establish a new connection: [Errno 60] Operation timed out
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/usr/local/var/pyenv/versions/3.6.8/lib/python3.6/site-packages/requests/adapters.py", line 449, in send
+    timeout=timeout
+  File "/usr/local/var/pyenv/versions/3.6.8/lib/python3.6/site-packages/urllib3/connectionpool.py", line 638, in urlopen
+    _stacktrace=sys.exc_info()[2])
+  File "/usr/local/var/pyenv/versions/3.6.8/lib/python3.6/site-packages/urllib3/util/retry.py", line 398, in increment
+    raise MaxRetryError(_pool, url, error or ResponseError(cause))
+urllib3.exceptions.MaxRetryError: HTTPConnectionPool(host='techgym.jp', port=80): Max retries exceeded with url: /?p=19 (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x10c0c0048>: Failed to establish a new connection: [Errno 60] Operation timed out',))
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "marcovify_headings.py", line 468, in <module>
+    marcovify_headings_app()
+  File "marcovify_headings.py", line 411, in marcovify_headings_app
+    all = multi_get_all_headings(urlList)
+  File "marcovify_headings.py", line 304, in multi_get_all_headings
+    for i, headings in enumerate(pool.map(get_headings, urlList)):
+  File "/usr/local/var/pyenv/versions/3.6.8/lib/python3.6/concurrent/futures/_base.py", line 586, in result_iterator
+    yield fs.pop().result()
+  File "/usr/local/var/pyenv/versions/3.6.8/lib/python3.6/concurrent/futures/_base.py", line 432, in result
+    return self.__get_result()
+  File "/usr/local/var/pyenv/versions/3.6.8/lib/python3.6/concurrent/futures/_base.py", line 384, in __get_result
+    raise self._exception
+  File "/usr/local/var/pyenv/versions/3.6.8/lib/python3.6/concurrent/futures/thread.py", line 56, in run
+    result = self.fn(*self.args, **self.kwargs)
+  File "marcovify_headings.py", line 228, in get_headings
+    res = requests.get(url_tag['href'], headers=h, verify=False)
+  File "/usr/local/var/pyenv/versions/3.6.8/lib/python3.6/site-packages/requests/api.py", line 75, in get
+    return request('get', url, params=params, **kwargs)
+  File "/usr/local/var/pyenv/versions/3.6.8/lib/python3.6/site-packages/requests/api.py", line 60, in request
+    return session.request(method=method, url=url, **kwargs)
+  File "/usr/local/var/pyenv/versions/3.6.8/lib/python3.6/site-packages/requests/sessions.py", line 533, in request
+    resp = self.send(prep, **send_kwargs)
+  File "/usr/local/var/pyenv/versions/3.6.8/lib/python3.6/site-packages/requests/sessions.py", line 646, in send
+    r = adapter.send(request, **kwargs)
+  File "/usr/local/var/pyenv/versions/3.6.8/lib/python3.6/site-packages/requests/adapters.py", line 516, in send
+    raise ConnectionError(e, request=request)
+requests.exceptions.ConnectionError: HTTPConnectionPool(host='techgym.jp', port=80): Max retries exceeded with url: /?p=19 (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x10c0c0048>: Failed to establish a new connection: [Errno 60] Operation timed out',))
