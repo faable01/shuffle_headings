@@ -14,13 +14,13 @@ base = None
 #if sys.platform == 'win32' : base = 'Win32GUI'
  
 # exe にしたい python ファイルを指定
-exe = Executable(script = 'shuffle_headings.py', icon = "icon.icns", base = base)
+exe = Executable(script = 'marcovify_headings.py', icon = "icon.icns", base = base)
 
 bdist_mac_options = {
     'iconfile': 'icon.icns',
 }
 # セットアップ
-setup(name = 'shuffle_headings',
+setup(name = 'marcovify_headings',
   version = '0.1',
   description = 'converter',
   executables = [exe],

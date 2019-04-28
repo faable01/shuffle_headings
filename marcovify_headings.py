@@ -211,6 +211,20 @@ def search_by_bing_up_to_specified_number(keyword, number, exclusion_target_list
     result_list.extend(url_tag_list_excluding_target_domain)
   return result_list[: number]
 
+# 通信結果を判定する
+def is_res_ng(res):
+  try:
+    res.raise_for_status()
+    # 例外なし => OK出力
+    print("通信結果判定：正常")
+    return False
+  
+  except requests.RequestException as e:
+    # 例外あり => NG出力
+    print("通信結果判定：異常（ページ存在なし等）")
+    print(e)
+    return True
+
 
 # ______________________________________________________________________________________________
 #
@@ -225,8 +239,21 @@ def get_headings(url_tag):
   # 取得したURLにアクセス
   h = {
       "User-Agent": "Mozilla/5.0 (Linux; U; Android 4.1.2; ja-jp; SC-06D Build/JZO54K) AppleWebKit/534.30 (KHTML, like Gecko) Version/4.0 Mobile Safari/534.30"}
-  res = requests.get(url_tag['href'], headers=h, verify=False)
-
+    
+  # 通信実行（例外時はtracebackを出力して関数を終了する）
+  try:
+    res = requests.get(url_tag['href'], headers=h, verify=False)
+  except:
+    print("通信時例外発生_例外詳細：")
+    # traceback詳細出力
+    import traceback
+    traceback.print_exc()
+    return False
+  
+  # 通信結果が異常
+  if is_res_ng(res):
+    return False
+  
   # WEBページの文字コードを推測
   res.encoding = res.apparent_encoding
   if res.encoding != 'UTF-8' and res.encoding != 'utf-8':
@@ -285,6 +312,12 @@ def get_all_headings(urlList: list) -> list:
 
     print(f'{i + 1}件目取得中...')
     headings = get_headings(u)
+
+    # 通信失敗時
+    if not headings:
+      print("次ページに処理を移行します")
+      continue
+    
     all['h2'].extend([write_wakati(h) for h in headings['h2']])
     all['h3'].extend([write_wakati(h) for h in headings['h3']])
     all['h4'].extend([write_wakati(h) for h in headings['h4']])
@@ -303,6 +336,12 @@ def multi_get_all_headings(urlList):
   with ThreadPoolExecutor() as pool:
     for i, headings in enumerate(pool.map(get_headings, urlList)):
       print(f'{i + 1}件目解析中...')
+      
+      # 通信失敗時
+      if not headings:
+        print("次ページに処理を移行します")
+        continue
+      
       all['h2'].extend([write_wakati(h) for h in headings['h2']])
       all['h3'].extend([write_wakati(h) for h in headings['h3']])
       all['h4'].extend([write_wakati(h) for h in headings['h4']])
@@ -365,6 +404,12 @@ def shuffle_headings_app():
 
     print(f'{i + 1}件目取得中...')
     headings = get_headings(u)
+    
+    # 通信失敗時
+    if not headings:
+      print("次ページに処理を移行します")
+      continue
+    
     all['h2'].extend(headings['h2'])
     all['h3'].extend(headings['h3'])
     all['h4'].extend(headings['h4'])
@@ -423,7 +468,8 @@ def marcovify_headings(all):
 
     # h2 = print(model_h2.make_sentence())
     # print(h2)
-    print(text_model.make_sentence())
+    sentence_h2 = text_model.make_sentence()
+    sentence_h2 and print(sentence_h2.replace(" ", ""))
 
     # 各h2に対してh3を2~3個
     num_h3 = random.randrange(2, 4, 1)
@@ -431,7 +477,8 @@ def marcovify_headings(all):
 
       # h3 = print(model_h3.make_sentence())
       # print(f'・{h3}')
-      print(f'・{text_model.make_sentence()}')
+      sentence_h3 = text_model.make_sentence()
+      sentence_h3 and print(f'・{sentence_h3.replace(" ", "")}')
       
       # h3に対して3回に1回の割合くらいでh4を2~3個
       num_h4 = random.choice([0, 0, 0, 0, 2, 3])
@@ -439,7 +486,8 @@ def marcovify_headings(all):
 
         # h4 = print(model_h4.make_sentence())
         # print(f'・・{h4}')
-        print(f'・・{text_model.make_sentence()}')
+        sentence_h4 = text_model.make_sentence()
+        sentence_h4 and print(f'・・{sentence_h4.replace(" ", "")}')
     
     print('')
 
