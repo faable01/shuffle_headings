@@ -5,7 +5,6 @@ import datetime
 from janome.tokenizer import Tokenizer
 import random
 import markovify
-import ssl
 from concurrent.futures import ThreadPoolExecutor
 import urllib3
 from urllib3.exceptions import InsecureRequestWarning
@@ -185,6 +184,11 @@ def get_url_tag_list_up_to_specified_number(keyword, number, exclusion_target_li
   loop_index = 0
   while len(result_list) < number:
     url_tag_list = get_url_tag_list(keyword, loop_index * 10)
+
+    # url_tag_listが一件も存在しない場合にはループを抜ける
+    if len(url_tag_list) is 0:
+      break
+    
     url_tag_list_excluding_target_domain = exclusion_target_list and exclude_specific_domains(
         url_tag_list, exclusion_target_list) or url_tag_list
     result_list.extend(url_tag_list_excluding_target_domain)
@@ -196,6 +200,11 @@ def search_by_yahoo_up_to_specified_number(keyword, number, exclusion_target_lis
   result_list = []
   while len(result_list) < number:
     url_tag_list = search_by_yahoo(keyword, len(result_list) + 1)
+
+    # url_tag_listが一件も存在しない場合にはループを抜ける
+    if len(url_tag_list) is 0:
+      break
+    
     url_tag_list_excluding_target_domain = exclusion_target_list and exclude_specific_domains(
         url_tag_list, exclusion_target_list) or url_tag_list
     result_list.extend(url_tag_list_excluding_target_domain)
@@ -206,6 +215,11 @@ def search_by_bing_up_to_specified_number(keyword, number, exclusion_target_list
   result_list = []
   while len(result_list) < number:
     url_tag_list = search_by_bing(keyword, len(result_list) + 1)
+
+    # url_tag_listが一件も存在しない場合にはループを抜ける
+    if len(url_tag_list) is 0:
+      break
+    
     url_tag_list_excluding_target_domain = exclusion_target_list and exclude_specific_domains(
         url_tag_list, exclusion_target_list) or url_tag_list
     result_list.extend(url_tag_list_excluding_target_domain)
@@ -271,13 +285,13 @@ def get_headings(url_tag):
     h_text = h.text.strip()
 
     if h.name == 'h2' and has_kw(must_keyword, h_text):
-      headings['h2'].append(h_text)
+      headings['h2'].append(h_text and h_text.replace("・", "") or "")
 
     elif h.name == 'h3' and has_kw(must_keyword, h_text):
-      headings['h3'].append(h_text)
+      headings['h3'].append(h_text and h_text.replace("・", "") or "")
 
     elif h.name == 'h4' and has_kw(must_keyword, h_text):
-      headings['h4'].append(h_text)
+      headings['h4'].append(h_text and h_text.replace("・", "") or "")
   
   return headings
 
@@ -502,6 +516,10 @@ def marcovify_headings_app():
     urlList = search_by_yahoo_up_to_specified_number(search_keyword, number_of_pages, exclusion_domain_list)
   elif search_engine == 3:
     urlList = search_by_bing_up_to_specified_number(search_keyword, number_of_pages, exclusion_domain_list)
+
+  # URLリストの要素が存在しない場合、処理を終了する
+  if len(urlList) is 0:
+    return
   
   # 全見出し　{'h2': [...], 'h3': [...], 'h4': [...]}
   all = multi_get_all_headings(urlList)
@@ -533,8 +551,60 @@ def marcovify_headings_app():
 # app実行
 # ---------------------------
 
-# # 見出しシャッフルツールの実行
-# shuffle_headings_app()
+def initialize():
+  """
+  再実行用にglobal変数を再設定する
+  """
+  # ユーザ入力 >>> シャッフル元ページの取得件数
+  global number_of_pages
+  number_of_pages = int(input('シャッフル元となるページの取得件数を入力してください >>> '))
+  
+  # ユーザ入力 >>> 除外するドメインのリスト
+  global user_input
+  global exclusion_domain_list
+  user_input = input('除外するドメインを指定してください（スペースを空けて複数指定可能） >>> ').strip() or None
+  exclusion_domain_list = user_input and user_input.split() or []
+  
+  # 検索エンジンの指定
+  global search_engine
+  search_engine = 0
+  while not search_engine in (1, 2, 3):
+    search_engine = int(input('検索エンジンを選択してください。 1. Google, 2. Yahoo!, 3. Bing（1, 2, 3のどれかを押してください） >>> '))
+  
+  # ユーザ入力 >>> 検索キーワード
+  global search_keyword
+  search_keyword = '+'.join(input('検索キーワードを入力してください >>> ').split())
+  
+  # デフォルトの削除ドメイン
+  default_exclusion_domain_list = ["https://www.amazon.co.jp/", "https://www.rakuten.co.jp/", "https://kakaku.com/", "https://twitter.com/", "https://www.instagram.com/", "https://www.cosme.net/", "https://beauty.hotpepper.jp/", "https://search.rakuten.co.jp/"]
+  exclusion_domain_list.extend(default_exclusion_domain_list)
+  
+  # 必須KW
+  global must_keyword
+  must_keyword = input('必須キーワードを入力してください >>> ')
 
-# マルコフ連鎖ツールの実行
-marcovify_headings_app()
+def app():
+  """
+  実行メソッド
+  """
+  while True:
+
+    # マルコフ連鎖ツールの実行
+    marcovify_headings_app()
+    
+    is_retry = ""
+    while is_retry != 'YES' and is_retry != 'NO':
+      is_retry = input('新たにキーワード等を指定して、見出し・本文の自動生成を行いますか？ ( YES / NO ) >>> ')
+      if is_retry == 'YES' or is_retry == 'yes' or is_retry == 'y' or is_retry == 'Y':
+        is_retry = 'YES'
+      elif is_retry == 'NO' or is_retry == 'no' or is_retry == 'n' or is_retry == 'N':
+        is_retry = 'NO'
+    
+    if is_retry == 'YES':
+      initialize()
+      continue
+    elif is_retry == 'NO':
+      break
+
+# 処理実行
+app()

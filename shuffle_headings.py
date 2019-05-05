@@ -37,7 +37,7 @@ must_keyword = input('必須キーワードを入力してください >>> ')
 # 文字列操作系
 # -----------------
 
-# 指定した品詞の文字列を取得するメソッド
+# 指定した品詞の文字列を取得するメソッド(該当なし時はからの配列を返却する)
 def getSurfaceOf(token_list, part_of_speech):
   return [token.surface for token in token_list if token.part_of_speech.startswith(part_of_speech)]
 
