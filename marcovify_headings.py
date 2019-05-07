@@ -124,7 +124,7 @@ def get_url_tag_list(keyword, start):
   search_params = {'q': keyword, 'start': start}
   p_str = "&".join("%s=%s" % (k, v) for k, v in search_params.items())
   # HTTP通信と結果の取得・パース
-  search_res = requests.get(url, params=p_str, headers=headers)
+  search_res = requests.get(url, params=p_str, headers=headers, verify=False)
   search_soup = BeautifulSoup(search_res.text, 'html.parser')
   # 検索結果一覧
   url_tag_list = search_soup.select('.C8nzq.BmP5tf:not(.d5oMvf)')
@@ -138,7 +138,7 @@ def search_by_yahoo(keyword, start):
   search_params = {"ei": "UTF-8", "fr": "top_smf",
                    "meta": "vc=", "p": keyword, "b": start or 1}
   p_str = "&".join("%s=%s" % (k, v) for k, v in search_params.items())
-  search_res = requests.get(url, params=p_str, headers=headers)
+  search_res = requests.get(url, params=p_str, headers=headers, verify=False)
   search_soup = BeautifulSoup(search_res.text, 'html.parser')
   base_list = search_soup.select(".sw-CardBase")
   url_tag_list = []
@@ -154,7 +154,7 @@ def search_by_bing(keyword, start):
       "User-Agent": "Mozilla/5.0 (Linux; U; Android 4.1.2; ja-jp; SC-06D Build/JZO54K) AppleWebKit/534.30 (KHTML, like Gecko) Version/4.0 Mobile Safari/534.30"}
   search_params = {"q": keyword, "form": "QBLH", "first": start}
   p_str = "&".join("%s=%s" % (k, v) for k, v in search_params.items())
-  search_res = requests.get(url, params=p_str, headers=headers)
+  search_res = requests.get(url, params=p_str, headers=headers, verify=False)
   search_soup = BeautifulSoup(search_res.text, 'html.parser')
   # <li class="b_algo"> 直下のaタグが検索結果
   base_list = search_soup.select(".b_algo")
