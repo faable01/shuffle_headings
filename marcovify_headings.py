@@ -256,7 +256,9 @@ def get_headings(url_tag):
     
   # 通信実行（例外時はtracebackを出力して関数を終了する）
   try:
-    res = requests.get(url_tag['href'], headers=h, verify=False)
+    # urlListのURLをhttpに直す
+    target_url = url_tag['href'].replace("https", "http")
+    res = requests.get(target_url, headers=h, verify=False)
   except:
     print("通信時例外発生_例外詳細：")
     # traceback詳細出力
