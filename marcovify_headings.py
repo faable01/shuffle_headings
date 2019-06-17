@@ -340,6 +340,8 @@ def get_all_headings(urlList: list) -> list:
     print('完了')
 
   print('全URLの見出しの取得を完了しました。')
+  len_all = len(all['h2']) + len(all['h3']) + len(all['h4'])
+  print(f"(取得した自動生成元の見出し件数：{len_all})")
   return all
 
 # 引数で指定したURLタグのリストに従い、複数スレッドでアクセス・見出し取得を行う
@@ -364,6 +366,8 @@ def multi_get_all_headings(urlList):
       print('完了')
 
   print('全URLの見出しの取得を完了しました。')
+  len_all = len(all['h2']) + len(all['h3']) + len(all['h4'])
+  print(f"(取得した自動生成元の見出し件数：{len_all})")
   return all
   
 # 第一引数の見出しリストをシャッフルする関数 (第一引数：{'h2', 'h3', 'h4'})
@@ -432,6 +436,8 @@ def shuffle_headings_app():
     print('完了')
 
   print('全URLの見出しの取得を完了しました。')
+  len_all = len(all['h2']) + len(all['h3']) + len(all['h4'])
+  print(f"(取得した自動生成元の見出し件数：{len_all})")
   print('見出しをシャッフル・再構築します。')
 
   # 見出し構成をランダムに作成する\
@@ -474,6 +480,12 @@ def marcovify_headings(all):
   # model_h2 = markovify.NewlineText(all_h2_str)
   # model_h3 = markovify.NewlineText(all_h3_str)
   # model_h4 = markovify.NewlineText(all_h4_str)
+  len_all = len(all['h2']) + len(all['h3']) + len(all['h4'])
+  if len_all < 10:
+    print("自動生成に必要な件数を満たないため、処理を終了します。")
+    errcd = 9
+    return errcd
+  
   text_model = markovify.NewlineText(all_line)
 
   # ---- 見出し構築・出力 ----
@@ -532,7 +544,9 @@ def marcovify_headings_app():
     print(f'構成案 {loop_count}件目\n---------------------------\n')
 
     # マルコフ連鎖で見出しを自動生成する
-    marcovify_headings(all)
+    errcd = marcovify_headings(all)
+    if errcd is 9:
+      break
 
     is_retry = ""
     while is_retry != 'YES' and is_retry != 'NO':
@@ -557,7 +571,7 @@ def initialize():
   """
   再実行用にglobal変数を再設定する
   """
-  # ユーザ入力 >>> シャッフル元ページの取得件数
+# ユーザ入力 >>> シャッフル元ページの取得件数
   global number_of_pages
   number_of_pages = int(input('シャッフル元となるページの取得件数を入力してください >>> '))
   
