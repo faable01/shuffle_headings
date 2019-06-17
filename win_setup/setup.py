@@ -11,7 +11,7 @@ base = None
 #if sys.platform == 'win32' : base = 'Win32GUI'
  
 # exe にしたい python ファイルを指定
-exe = Executable(script = 'shuffle_headings.py', icon = "python_01.ico", base = base)
+exe = Executable(script = 'marcovify_headings.py', icon = "python_01.ico", base = base)
 
 # セットアップ
 setup(name = 'shuffle_headings',
